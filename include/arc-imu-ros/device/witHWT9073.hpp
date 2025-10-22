@@ -22,20 +22,24 @@ public:
 
     void reset() override;
 
-    static constexpr size_t FRAME_SIZE = 10;                                  // 1 (header) + 1 (type) + 8 (data)
-    static constexpr size_t HEADER_SIZE = 1;                                  // 1 byte for header
-    static constexpr size_t DATA_HEADER_SIZE = 1;                             // 1 byte for data type
-    static constexpr size_t DATA_SIZE = 8;                                    // 8 bytes for data
-    static constexpr float ACCELERATION_SCALE = 16.0f;                        // ±16g
-    static constexpr float ANGULAR_VELOCITY_SCALE = 2000.0f;                  // ±2000°/s
-    static constexpr float GRAVITY = 9.80665f;                                // m/s²
-    static constexpr float MAX_SENSOR_VALUE = 32768.0f;                       // 2^15
-    static constexpr float ANGLE_SCALE = 1000.0f;                             // Scale for roll, pitch, yaw in degrees
-    static constexpr uint8_t UNLOCK[] = {0xFF, 0xAA, 0x69, 0x88, 0xB5};       // Unlock command
-    static constexpr uint8_t INIT_ITEMS[] = {0xFF, 0xAA, 0x02, 0x3E, 0x00};   // Initialization command
-    static constexpr uint8_t BAUD_RATE_200K[] = {0xFF, 0xAA, 0x04, 02, 0x00}; // Set baud rate to 200000
-    static constexpr uint8_t SAVE_ITEMS[] = {0xFF, 0xAA, 0x00, 0x00, 0x00};   // Save command
-    static constexpr uint8_t REBOOT[] = {0xFF, 0xAA, 0x00, 0xFF, 0x00};       // Reboot command
+    static constexpr size_t FRAME_SIZE = 10;                            // 1 (header) + 1 (type) + 8 (data)
+    static constexpr size_t HEADER_SIZE = 1;                            // 1 byte for header
+    static constexpr size_t DATA_HEADER_SIZE = 1;                       // 1 byte for data type
+    static constexpr size_t DATA_SIZE = 8;                              // 8 bytes for data
+    static constexpr float ACCELERATION_SCALE = 16.0f;                  // ±16g
+    static constexpr float ANGULAR_VELOCITY_SCALE = 2000.0f;            // ±2000°/s
+    static constexpr float GRAVITY = 9.80665f;                          // m/s²
+    static constexpr float MAX_SENSOR_VALUE = 32768.0f;                 // 2^15
+    static constexpr float ANGLE_SCALE = 1000.0f;                       // Scale for roll, pitch, yaw in degrees
+    static constexpr uint8_t UNLOCK[] = {0xFF, 0xAA, 0x69, 0x88, 0xB5}; // Unlock command
+    // static constexpr uint8_t UNLOCK[] = {0xB5, 0x88, 0x69, 0xAA, 0xFF}; // Unlock command
+    static constexpr uint8_t INIT_ITEMS[] = {0xFF, 0xAA, 0x02, 0x0E, 0x00}; // Initialization command
+    // static constexpr uint8_t INIT_ITEMS[] = {0x00, 0x02, 0x02, 0xAA, 0xFF};   // Initialization command
+    static constexpr uint8_t BAUD_RATE_200K[] = {0xFF, 0xAA, 0x04, 0x05, 0x00};   // Set baud rate to 200000
+    static constexpr uint8_t OUTPUT_RATE_50HZ[] = {0xFF, 0xAA, 0x03, 0x08, 0x00}; // Set data rate to 50Hz
+    static constexpr uint8_t SAVE_ITEMS[] = {0xFF, 0xAA, 0x00, 0x00, 0x00};       // Save command
+    // static constexpr uint8_t SAVE_ITEMS[] = {0x00, 0x00, 0x00, 0xAA, 0xFF}; // Save command
+    static constexpr uint8_t REBOOT[] = {0xFF, 0xAA, 0x00, 0xFF, 0x00}; // Reboot command
 
     IMUData get_imu_data() const
     {

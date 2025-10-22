@@ -14,11 +14,15 @@ void WitHWT9073::initialize()
     }
 
     serial_bus_interface_->write(UNLOCK, sizeof(UNLOCK));
-    serial_bus_interface_->write(BAUD_RATE_200K, sizeof(BAUD_RATE_200K));
+    sleep(1);
+    serial_bus_interface_->write(OUTPUT_RATE_50HZ, sizeof(OUTPUT_RATE_50HZ));
+    sleep(1);
     serial_bus_interface_->write(INIT_ITEMS, sizeof(INIT_ITEMS));
+    sleep(1);
     serial_bus_interface_->write(SAVE_ITEMS, sizeof(SAVE_ITEMS));
-    // serial_bus_interface_->write(REBOOT, sizeof(REBOOT));
-
+    sleep(1);
+    serial_bus_interface_->write(REBOOT, sizeof(REBOOT));
+    sleep(1);
     std::cout << "WitHWT9073 initialized successfully." << std::endl;
 }
 
@@ -110,6 +114,7 @@ bool WitHWT9073::get_data(uint8_t *data)
         if (bytes_read != HEADER_SIZE || data[0] != static_cast<uint8_t>(FrameHeader::START_BYTE))
         {
             std::cerr << "Invalid frame header." << std::endl;
+            std::cerr << "Received byte: " << std::hex << static_cast<int>(data[0]) << std::dec << std::endl;
             return false;
         }
 
