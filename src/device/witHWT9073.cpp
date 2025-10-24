@@ -48,6 +48,78 @@ bool WitHWT9073::is_valid_data_header(const uint8_t &data_header)
            is_orientation_frame(data_header);
 }
 
+bool WitHWT9073::is_valid_start_byte(const uint8_t &start_byte)
+{
+    return start_byte == static_cast<uint8_t>(FrameHeader::START_BYTE);
+}
+
+bool WitHWT9073::is_roll_orientation_frame(const uint8_t &data_header)
+{
+    return data_header == static_cast<uint8_t>(AngleAxis::ROLL);
+}
+
+bool WitHWT9073::is_pitch_orientation_frame(const uint8_t &data_header)
+{
+    return data_header == static_cast<uint8_t>(AngleAxis::PITCH);
+}
+
+bool WitHWT9073::is_yaw_orientation_frame(const uint8_t &data_header)
+{
+    return data_header == static_cast<uint8_t>(AngleAxis::YAW);
+}
+
+bool WitHWT9073::has_valid_data_headers(const uint8_t *data)
+{
+    size_t current_packet = 0;
+    // Roll Packet
+    if (!is_valid_start_byte(data[current_packet]) ||
+        !is_orientation_frame(data[current_packet + 1]) ||
+        !is_roll_orientation_frame(data[current_packet + 2]))
+    {
+        return false;
+    }
+
+    current_packet += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+
+    // Yaw Packet
+    if (!is_valid_start_byte(data[current_packet]) ||
+        !is_orientation_frame(data[current_packet + 1]) ||
+        !is_yaw_orientation_frame(data[current_packet + 2]))
+    {
+        return false;
+    }
+
+    current_packet += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+
+    // Angular Velocity Packet
+    if (!is_valid_start_byte(data[current_packet]) ||
+        !is_angular_velocity_frame(data[current_packet + 1]))
+    {
+        return false;
+    }
+
+    current_packet += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+
+    // Pitch Packet
+    if (!is_valid_start_byte(data[current_packet]) ||
+        !is_orientation_frame(data[current_packet + 1]) ||
+        !is_pitch_orientation_frame(data[current_packet + 2]))
+    {
+        return false;
+    }
+
+    current_packet += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+
+    // Acceleration Packet
+    if (!is_valid_start_byte(data[current_packet]) ||
+        !is_acceleration_frame(data[current_packet + 1]))
+    {
+        return false;
+    }
+
+    return true;
+}
+
 void WitHWT9073::parse_acceleration_data(const uint8_t *data)
 {
     for (size_t i = 0; i < 3; i++)
@@ -71,6 +143,7 @@ void WitHWT9073::parse_angular_velocity_data(const uint8_t *data)
 
 void WitHWT9073::parse_orientation_data(const uint8_t *data)
 {
+    data += HEADER_SIZE + DATA_HEADER_SIZE; // Move to the actual data start
     if (data[0] == static_cast<uint8_t>(AngleAxis::ROLL))
     {
         int32_t raw_value = (static_cast<int32_t>(data[5] << 24) | static_cast<int32_t>(data[4] << 16) |
@@ -118,8 +191,9 @@ bool WitHWT9073::get_data(uint8_t *data)
             return false;
         }
 
-        bytes_read += serial_bus_interface_->read(data + HEADER_SIZE, DATA_HEADER_SIZE);
-        if (bytes_read != HEADER_SIZE + DATA_HEADER_SIZE || !is_valid_data_header(data[1]))
+        // Effectively, a full data packet starts with START_BYTE, DATA_HEADER, and ROLL ORIENTATION_HEADER
+        bytes_read += serial_bus_interface_->read(data + HEADER_SIZE, DATA_HEADER_SIZE + ORIENTATION_HEADER_SIZE);
+        if (bytes_read != HEADER_SIZE + DATA_HEADER_SIZE + ORIENTATION_HEADER_SIZE || !is_orientation_frame(data[1]) || data[2] != static_cast<uint8_t>(AngleAxis::ROLL))
         {
             std::cerr << "Invalid data header." << std::endl;
             return false;
@@ -128,8 +202,8 @@ bool WitHWT9073::get_data(uint8_t *data)
         // Read the rest of the data frame byte by byte
         for (size_t i = 0; i < DATA_SIZE; ++i)
         {
-            bytes_read += serial_bus_interface_->read(data + HEADER_SIZE + DATA_HEADER_SIZE + i, 1);
-            if (bytes_read != HEADER_SIZE + DATA_HEADER_SIZE + i + 1)
+            bytes_read += serial_bus_interface_->read(data + HEADER_SIZE + DATA_HEADER_SIZE + ORIENTATION_HEADER_SIZE + i, 1);
+            if (bytes_read != HEADER_SIZE + DATA_HEADER_SIZE + ORIENTATION_HEADER_SIZE + i + 1)
             {
                 std::cerr << "Incomplete data frame." << std::endl;
                 return false;
@@ -138,24 +212,30 @@ bool WitHWT9073::get_data(uint8_t *data)
 
         std::cout << "Data frame received successfully." << std::endl;
 
-        if (is_acceleration_frame(data[1]))
+        if (!has_valid_data_headers(data))
         {
-            parse_acceleration_data(data + HEADER_SIZE + DATA_HEADER_SIZE);
-            return true;
-        }
-        else if (is_angular_velocity_frame(data[1]))
-        {
-            parse_angular_velocity_data(data + HEADER_SIZE + DATA_HEADER_SIZE);
-            return true;
-        }
-        else if (is_orientation_frame(data[1]))
-        {
-            parse_orientation_data(data + HEADER_SIZE + DATA_HEADER_SIZE);
-            return true;
+            std::cerr << "Data frame contains invalid data headers." << std::endl;
+            return false;
         }
 
-        std::cerr << "Unknown data type." << std::endl;
-        return false;
+        std::cout << "Data headers validated successfully." << std::endl;
+
+        // Roll
+        parse_orientation_data(data);
+        data += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+        // Yaw
+        parse_orientation_data(data);
+        data += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+        // Angular Velocity
+        parse_angular_velocity_data(data);
+        data += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+        // Pitch
+        parse_orientation_data(data);
+        data += HEADER_SIZE + DATA_HEADER_SIZE + DATA_PACKET_SIZE + JUNK_SIZE;
+        // Acceleration
+        parse_acceleration_data(data);
+
+        return true;
     }
 }
 
