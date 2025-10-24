@@ -44,6 +44,14 @@ void WitImuNode::polling_loop()
         if (wit_imu_device_->get_data(buffer))
         {
             auto imu_data = wit_imu_device_->get_imu_data();
+
+            if (!imu_data_initialized_)
+            {
+                RCLCPP_INFO(this->get_logger(), "Initial IMU data received.");
+                wit_imu_device_->reset();
+                imu_data_initialized_ = true;
+            }
+
             auto imu_msg = convert_to_ros2_msg(imu_data);
             imu_publisher_->publish(imu_msg);
         }
@@ -68,13 +76,13 @@ sensor_msgs::msg::Imu WitImuNode::convert_to_ros2_msg(const WitHWT9073::IMUData 
 
     // Convert roll, pitch, yaw to quaternion
     tf2::Quaternion q;
-    q.setRPY(imu_data.orientation[0],
-             imu_data.orientation[1],
-             imu_data.orientation[2]);
+    q.setRPY(imu_data.orientation[0] - imu_data.orientation_offset[0],
+             imu_data.orientation[1] - imu_data.orientation_offset[1],
+             imu_data.orientation[2] - imu_data.orientation_offset[2]);
     imu_msg.orientation = tf2::toMsg(q);
 
     // Print RPY
-    RCLCPP_INFO(this->get_logger(), "RPY: [%.3f, %.3f, %.3f]", imu_data.orientation[0], imu_data.orientation[1], imu_data.orientation[2]);
+    RCLCPP_INFO(this->get_logger(), "RPY: [%.3f, %.3f, %.3f]", imu_data.orientation[0] - imu_data.orientation_offset[0], imu_data.orientation[1] - imu_data.orientation_offset[1], imu_data.orientation[2] - imu_data.orientation_offset[2]);
 
     // Set covariance (example values, adjust as needed)
     for (int i = 0; i < 9; ++i)
