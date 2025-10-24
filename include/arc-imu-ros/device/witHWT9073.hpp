@@ -31,6 +31,7 @@ public:
     static constexpr float GRAVITY = 9.80665f;                          // m/s²
     static constexpr float MAX_SENSOR_VALUE = 32768.0f;                 // 2^15
     static constexpr float ANGLE_SCALE = 1000.0f;                       // Scale for roll, pitch, yaw in degrees
+    static constexpr float DEG2RAD = 3.14159265359f / 180.0f;           // Degrees to radians conversion factor
     static constexpr uint8_t UNLOCK[] = {0xFF, 0xAA, 0x69, 0x88, 0xB5}; // Unlock command
     // static constexpr uint8_t UNLOCK[] = {0xB5, 0x88, 0x69, 0xAA, 0xFF}; // Unlock command
     static constexpr uint8_t INIT_ITEMS[] = {0xFF, 0xAA, 0x02, 0x0E, 0x00}; // Initialization command

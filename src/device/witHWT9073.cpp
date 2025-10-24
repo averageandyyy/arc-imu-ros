@@ -75,21 +75,21 @@ void WitHWT9073::parse_orientation_data(const uint8_t *data)
     {
         int32_t raw_value = (static_cast<int32_t>(data[5] << 24) | static_cast<int32_t>(data[4] << 16) |
                              static_cast<int32_t>(data[3] << 8) | static_cast<int32_t>(data[2]));
-        imu_data_.orientation[0] = (static_cast<float>(raw_value) / ANGLE_SCALE);
+        imu_data_.orientation[0] = (static_cast<float>(raw_value) / ANGLE_SCALE) * DEG2RAD;
         std::cout << "Received Roll Data." << std::endl;
     }
     else if (data[0] == static_cast<uint8_t>(AngleAxis::PITCH))
     {
         int32_t raw_value = (static_cast<int32_t>(data[5] << 24) | static_cast<int32_t>(data[4] << 16) |
                              static_cast<int32_t>(data[3] << 8) | static_cast<int32_t>(data[2]));
-        imu_data_.orientation[1] = (static_cast<float>(raw_value) / ANGLE_SCALE);
+        imu_data_.orientation[1] = (static_cast<float>(raw_value) / ANGLE_SCALE) * DEG2RAD;
         std::cout << "Received Pitch Data." << std::endl;
     }
     else if (data[0] == static_cast<uint8_t>(AngleAxis::YAW))
     {
         int32_t raw_value = (static_cast<int32_t>(data[5] << 24) | static_cast<int32_t>(data[4] << 16) |
                              static_cast<int32_t>(data[3] << 8) | static_cast<int32_t>(data[2]));
-        imu_data_.orientation[2] = (static_cast<float>(raw_value) / ANGLE_SCALE);
+        imu_data_.orientation[2] = (static_cast<float>(raw_value) / ANGLE_SCALE) * DEG2RAD;
         std::cout << "Received Yaw Data." << std::endl;
     }
     else
