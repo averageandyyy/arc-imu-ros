@@ -99,10 +99,7 @@ void WitImuNode::reset_orientation_callback(const std::shared_ptr<std_srvs::srv:
                                             std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
     (void)request; // Unused parameter
-    {
-        std::lock_guard<std::mutex> lock(imu_data_mutex_);
-        wit_imu_device_->reset();
-    }
+    wit_imu_device_->reset();
     response->success = true;
     response->message = "IMU orientation reset successfully.";
     RCLCPP_INFO(this->get_logger(), "IMU orientation reset.");

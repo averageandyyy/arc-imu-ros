@@ -41,13 +41,6 @@ bool WitHWT9073::is_orientation_frame(const uint8_t &data_header)
     return data_header == static_cast<uint8_t>(FrameHeader::ORIENTATION);
 }
 
-bool WitHWT9073::is_valid_data_header(const uint8_t &data_header)
-{
-    return is_acceleration_frame(data_header) ||
-           is_angular_velocity_frame(data_header) ||
-           is_orientation_frame(data_header);
-}
-
 bool WitHWT9073::is_valid_start_byte(const uint8_t &start_byte)
 {
     return start_byte == static_cast<uint8_t>(FrameHeader::START_BYTE);
@@ -193,7 +186,7 @@ bool WitHWT9073::get_data(uint8_t *data)
 
         // Effectively, a full data packet starts with START_BYTE, DATA_HEADER, and ROLL ORIENTATION_HEADER
         bytes_read += serial_bus_interface_->read(data + HEADER_SIZE, DATA_HEADER_SIZE + ORIENTATION_HEADER_SIZE);
-        if (bytes_read != HEADER_SIZE + DATA_HEADER_SIZE + ORIENTATION_HEADER_SIZE || !is_orientation_frame(data[1]) || data[2] != static_cast<uint8_t>(AngleAxis::ROLL))
+        if (bytes_read != HEADER_SIZE + DATA_HEADER_SIZE + ORIENTATION_HEADER_SIZE || !is_orientation_frame(data[1]) || !is_roll_orientation_frame(data[2]))
         {
             std::cerr << "Invalid data header." << std::endl;
             return false;
@@ -241,8 +234,11 @@ bool WitHWT9073::get_data(uint8_t *data)
 
 void WitHWT9073::reset()
 {
-    this->imu_data_.orientation_offset[0] = this->imu_data_.orientation[0];
-    this->imu_data_.orientation_offset[1] = this->imu_data_.orientation[1];
-    this->imu_data_.orientation_offset[2] = this->imu_data_.orientation[2];
-    std::cout << "Orientation offsets reset." << std::endl;
+    {
+        std::lock_guard<std::mutex> lock(data_mutex_);
+        this->imu_data_.orientation_offset[0] = this->imu_data_.orientation[0];
+        this->imu_data_.orientation_offset[1] = this->imu_data_.orientation[1];
+        this->imu_data_.orientation_offset[2] = this->imu_data_.orientation[2];
+        std::cout << "Orientation offsets reset." << std::endl;
+    }
 }

@@ -42,14 +42,11 @@ public:
     static constexpr float ANGLE_SCALE = 1000.0f;                                                                   // Scale for roll, pitch, yaw in degrees
     static constexpr float DEG2RAD = 3.14159265359f / 180.0f;                                                       // Degrees to radians conversion factor
     static constexpr uint8_t UNLOCK[] = {0xFF, 0xAA, 0x69, 0x88, 0xB5};                                             // Unlock command
-    // static constexpr uint8_t UNLOCK[] = {0xB5, 0x88, 0x69, 0xAA, 0xFF}; // Unlock command
-    static constexpr uint8_t INIT_ITEMS[] = {0xFF, 0xAA, 0x02, 0x0E, 0x00}; // Initialization command
-    // static constexpr uint8_t INIT_ITEMS[] = {0x00, 0x02, 0x02, 0xAA, 0xFF};   // Initialization command
-    static constexpr uint8_t BAUD_RATE_200K[] = {0xFF, 0xAA, 0x04, 0x05, 0x00};   // Set baud rate to 200000
-    static constexpr uint8_t OUTPUT_RATE_50HZ[] = {0xFF, 0xAA, 0x03, 0x08, 0x00}; // Set data rate to 50Hz
-    static constexpr uint8_t SAVE_ITEMS[] = {0xFF, 0xAA, 0x00, 0x00, 0x00};       // Save command
-    // static constexpr uint8_t SAVE_ITEMS[] = {0x00, 0x00, 0x00, 0xAA, 0xFF}; // Save command
-    static constexpr uint8_t REBOOT[] = {0xFF, 0xAA, 0x00, 0xFF, 0x00}; // Reboot command
+    static constexpr uint8_t INIT_ITEMS[] = {0xFF, 0xAA, 0x02, 0x0E, 0x00};                                         // Initialization command
+    static constexpr uint8_t BAUD_RATE_200K[] = {0xFF, 0xAA, 0x04, 0x05, 0x00};                                     // Set baud rate to 200000
+    static constexpr uint8_t OUTPUT_RATE_50HZ[] = {0xFF, 0xAA, 0x03, 0x08, 0x00};                                   // Set data rate to 50Hz
+    static constexpr uint8_t SAVE_ITEMS[] = {0xFF, 0xAA, 0x00, 0x00, 0x00};                                         // Save command
+    static constexpr uint8_t REBOOT[] = {0xFF, 0xAA, 0x00, 0xFF, 0x00};                                             // Reboot command
 
     IMUData get_imu_data() const
     {
@@ -64,7 +61,6 @@ private:
         ACCELERATION = 0x51,
         ANGULAR_VELOCITY = 0x52,
         ORIENTATION = 0x53,
-        MAGNETIC_FIELD = 0x54
     };
 
     enum class AngleAxis : uint8_t
@@ -77,7 +73,6 @@ private:
     IMUData imu_data_;
 
     // Data validation methods
-    bool is_valid_data_header(const uint8_t &data_header);
     bool is_acceleration_frame(const uint8_t &data_header);
     bool is_angular_velocity_frame(const uint8_t &data_header);
     bool is_orientation_frame(const uint8_t &data_header);
