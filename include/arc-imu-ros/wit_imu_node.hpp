@@ -35,6 +35,8 @@ private:
     std::thread polling_thread_;
     std::atomic<bool> running_;
     std::mutex imu_data_mutex_;
+
+    bool imu_data_initialized_ = false;
 };
 
 #endif // WIT_IMU_NODE_HPP
